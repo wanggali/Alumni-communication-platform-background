@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pzhu.acp.mapper.PushMapper">
+
+    <resultMap id="BaseResultMap" type="com.pzhu.acp.model.entity.Push">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="companyName" column="company_name" jdbcType="VARCHAR"/>
+        <result property="companyPosition" column="company_position" jdbcType="VARCHAR"/>
+        <result property="companyRegion" column="company_region" jdbcType="VARCHAR"/>
+        <result property="companySalary" column="company_salary" jdbcType="VARCHAR"/>
+        <result property="positionInfo" column="position_info" jdbcType="VARCHAR"/>
+        <result property="positionNum" column="position_num" jdbcType="INTEGER"/>
+        <result property="pushUrl" column="push_url" jdbcType="VARCHAR"/>
+        <result property="uid" column="uid" jdbcType="BIGINT"/>
+        <result property="isAudit" column="is_audit" jdbcType="TINYINT"/>
+        <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,company_name,company_position,
+        company_region,company_salary,position_info,
+        position_num,push_url,uid,
+        is_audit,is_delete,create_time,
+        update_time
+    </sql>
+
+    <resultMap id="SelectPushInfoByPageOrParamMap" type="com.pzhu.acp.model.vo.PushVO">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="companyName" column="company_name" jdbcType="VARCHAR"/>
+        <result property="companyPosition" column="company_position" jdbcType="VARCHAR"/>
+        <result property="companyRegion" column="company_region" jdbcType="VARCHAR"/>
+        <result property="companySalary" column="company_salary" jdbcType="VARCHAR"/>
+        <result property="positionInfo" column="position_info" jdbcType="VARCHAR"/>
+        <result property="positionNum" column="position_num" jdbcType="INTEGER"/>
+        <result property="pushUrl" column="push_url" jdbcType="VARCHAR"/>
+        <result property="uid" column="uid" jdbcType="BIGINT"/>
+        <result property="isAudit" column="is_audit" jdbcType="TINYINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <association property="userInfo" column="uid" select="com.pzhu.acp.mapper.UserMapper.selectUserById"/>
+    </resultMap>
+
+    <select id="selectPushInfoByPageOrParam"
+            parameterType="com.pzhu.acp.model.query.GetPushByPageQuery"
+            resultMap="SelectPushInfoByPageOrParamMap">
+        select id,
+        company_name,
+        company_position,
+        company_region,
+        company_salary,
+        position_info,
+        position_num,
+        push_url,
+        uid,
+        is_audit,
+        create_time
+        from push
+        <where>
+            is_delete=0
+            <if test="query.isAudit!=null">
+                and is_audit=#{query.isAudit}
+            </if>
+            <if test="query.sortType!=null">
+                order by company_salary desc
+            </if>
+            <if test="query.sortType==null">
+                order by create_time desc
+            </if>
+        </where>
+    </select>
+</mapper>

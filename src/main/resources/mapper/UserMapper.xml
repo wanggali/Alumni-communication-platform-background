@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pzhu.acp.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.pzhu.acp.model.entity.User">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="rid" column="rid" jdbcType="BIGINT"/>
+        <result property="collegeId" column="college_id" jdbcType="BIGINT"/>
+        <result property="adminType" column="admin_type" jdbcType="TINYINT"/>
+        <result property="passsword" column="passsword" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="sign" column="sign" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="TINYINT"/>
+        <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,rid,college_id,admin_type,
+        passsword,email,
+        avatar,username,sign,
+        status,is_delete,create_time,
+        update_time
+    </sql>
+
+    <resultMap id="selectUserByIdMap" type="com.pzhu.acp.model.vo.UserVO">
+        <id property="userId" column="id" jdbcType="BIGINT"/>
+        <result property="regionId" column="rid" jdbcType="BIGINT"/>
+        <result property="collegeId" column="college_id" jdbcType="BIGINT"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="userAvatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="userName" column="username" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="TINYINT"/>
+        <result property="userSign" column="sign" jdbcType="VARCHAR"/>
+        <result property="joinTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <association property="regionName" column="rid" select="com.pzhu.acp.mapper.RegionMapper.selectRegionById"/>
+        <association property="collegeName" column="college_id"
+                     select="com.pzhu.acp.mapper.CollegeMapper.selectCollegeNameById"/>
+        <association property="userInfo" column="id"
+                     select="com.pzhu.acp.mapper.UserInfoMapper.selectUserInfoById"/>
+    </resultMap>
+
+    <select id="selectUserById"
+            parameterType="java.lang.Long"
+            resultMap="selectUserByIdMap">
+        select id,
+               rid,
+               email,
+               college_id,
+               avatar,
+               username,
+               sign,
+               create_time,
+               status
+        from user
+        where id = #{id,jdbcType=BIGINT}
+          and is_delete = 0
+    </select>
+
+    <select id="selectUserByPage"
+            resultMap="selectUserByIdMap"
+            parameterType="com.pzhu.acp.model.query.GetUserByPageQuery">
+        select id,
+        rid,
+        college_id,
+        avatar,
+        username,
+        sign,
+        create_time,
+        status,
+        email
+        from user
+        <where>
+            is_delete = 0
+            <if test="query.status!=null">
+                and status=#{query.status}
+            </if>
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pzhu.acp.mapper.AnswerMapper">
+
+    <resultMap id="BaseResultMap" type="com.pzhu.acp.model.entity.Answer">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="uid" column="uid" jdbcType="BIGINT"/>
+        <result property="qid" column="qid" jdbcType="BIGINT"/>
+        <result property="answerId" column="answer_id" jdbcType="BIGINT"/>
+        <result property="answerContent" column="answer_content" jdbcType="VARCHAR"/>
+        <result property="isAdopt" column="is_adopt" jdbcType="TINYINT"/>
+        <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,uid,qid,
+        answer_id,answer_content,is_adopt,
+        is_delete,create_time,update_time
+    </sql>
+
+    <resultMap id="selectAnswerByPageMap" type="com.pzhu.acp.model.vo.AnswerVO">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="uid" column="uid" jdbcType="BIGINT"/>
+        <result property="qid" column="qid" jdbcType="BIGINT"/>
+        <result property="answerId" column="answer_id" jdbcType="BIGINT"/>
+        <result property="answerContent" column="answer_content" jdbcType="VARCHAR"/>
+        <result property="isAdopt" column="is_adopt" jdbcType="TINYINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <association property="userInfo" column="uid" select="com.pzhu.acp.mapper.UserMapper.selectUserById"/>
+        <association property="answerUserInfo" column="answer_id"
+                     select="com.pzhu.acp.mapper.UserMapper.selectUserById"/>
+    </resultMap>
+
+    <select id="selectAnswerByPage"
+            parameterType="com.pzhu.acp.model.query.GetAnswerByPageQuery"
+            resultMap="selectAnswerByPageMap">
+        select id,
+               uid,
+               qid,
+               answer_id,
+               answer_content,
+               is_adopt,
+               create_time
+        from answer
+        where qid = #{query.qid}
+          and is_delete = 0
+        order by create_time desc
+    </select>
+</mapper>

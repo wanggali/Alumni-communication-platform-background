@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pzhu.acp.mapper.OriginMapper">
+
+    <resultMap id="BaseResultMap" type="com.pzhu.acp.model.entity.Origin">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="cid" column="cid" jdbcType="BIGINT"/>
+        <result property="uid" column="uid" jdbcType="BIGINT"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        cid,uid,
+        name,avatar,is_delete,
+        create_time,update_time
+    </sql>
+
+    <resultMap id="selectOriginByIdMap" type="com.pzhu.acp.model.vo.OriginToVO">
+        <result property="cid" column="cid" jdbcType="BIGINT"/>
+        <result property="id" column="id" jdbcType="BIGINT"/>
+        <result property="originCreateId" column="uid" jdbcType="BIGINT"/>
+        <result property="originName" column="name" jdbcType="VARCHAR"/>
+        <result property="originAvatar" column="avatar" jdbcType="VARCHAR"/>
+        <association property="originCollegeName" column="cid"
+                     select="com.pzhu.acp.mapper.CollegeMapper.selectCollegeNameById"/>
+    </resultMap>
+
+    <select id="selectOriginById"
+            parameterType="java.lang.Long"
+            resultMap="selectOriginByIdMap">
+        select id,
+               cid,
+               uid,
+               name,
+               avatar
+        from origin
+        where id = #{id,jdbcType=BIGINT}
+          and is_delete = 0
+    </select>
+</mapper>

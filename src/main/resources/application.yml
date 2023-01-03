@@ -1,0 +1,102 @@
+spring:
+  application:
+    name: acp-background
+  # 默认 dev 环境
+  profiles:
+    active: dev
+  # DataSource Config
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/acp
+    username: root
+    password: 123456
+  #    整合swagger接口文档 /启动类中加入注解@EnableWebMvc
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+  # session 失效时间（分钟）
+  session:
+    timeout: 86400
+    store-type: redis
+  # redis 配置
+  redis:
+    port: 6379
+    host: localhost
+    database: 0
+    #    邮件配置
+  mail:
+    #smtp服务主机  qq邮箱则为smtp.qq.com;163邮箱是smtp.163.com
+    host: smtp.qq.com
+    #服务协议
+    protocol: smtp
+    # 编码集
+    default-encoding: UTF-8
+    #发送邮件的账户
+    username: 2722933638@qq.com
+    #授权码
+    password: bhswopqhcqtgdggb
+    test-connection: true
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+captcha:
+  expire:
+    default: 10000
+    # 文字点选验证码 过期时间设置大一点
+    WORD_IMAGE_CLICK: 60000
+  cache:
+    enabled: true
+    cache-size: 20
+  secondary:
+    enabled: false
+  # 不初始化默认的资源文件
+  init-default-resource: false
+server:
+  port: 9001
+  servlet:
+    context-path: /api
+mybatis-plus:
+  configuration:
+    #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射 address_book ---> addressBook
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDelete # 全局逻辑删除的实体字段名(since 3.3.0,配置后可以忽略不配置步骤2)
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+
+# 整合阿里oss
+aliyun:
+  oss:
+    file:
+      endpoint: oss-cn-chengdu.aliyuncs.com
+      keyid: LTAI5t9Ct4kWsp9nuwrNbofx
+      keysecret: Un3jdGyQ0p0GfsXkEaQapac6J8A4b0
+      bucketname: alumni-communication-platform
+
+
+# Sa-Token配置
+sa-token:
+  # token名称 (同时也是cookie名称)
+  token-name: token
+  # token有效期，单位秒，-1代表永不过期
+  timeout: 2592000
+  # token临时有效期 (指定时间内无操作就视为token过期)，单位秒
+  activity-timeout: -1
+  # 是否允许同一账号并发登录 (为false时新登录挤掉旧登录)
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个token (为false时每次登录新建一个token)
+  is-share: false
+  # token风格
+  token-style: uuid
+  # 是否输出操作日志
+  is-log: false
+  # 是否从cookie中读取token
+  is-read-cookie: false
+  # 是否从head中读取token
+  is-read-head: true

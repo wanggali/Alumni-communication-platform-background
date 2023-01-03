@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pzhu.acp.mapper.UserRoleMapper">
+
+    <resultMap id="BaseResultMap" type="com.pzhu.acp.model.entity.UserRole">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="roleId" column="role_id" jdbcType="BIGINT"/>
+        <result property="userId" column="user_id" jdbcType="BIGINT"/>
+        <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,role_id,user_id,
+        is_delete,create_time,update_time
+    </sql>
+
+    <resultMap id="selectRoleByUserResultMap" type="com.pzhu.acp.model.vo.RoleVO">
+        <result property="roleId" column="role_id" jdbcType="BIGINT"/>
+        <result property="userId" column="user_id" jdbcType="BIGINT"/>
+        <association property="roleName" column="role_id"
+                     select="com.pzhu.acp.mapper.RoleMapper.selectRoleNameByUserId"/>
+        <collection property="permissionVO" column="role_id"
+                    select="com.pzhu.acp.mapper.RolePermissionMapper.selectPermission"/>
+    </resultMap>
+
+    <select id="selectRoleByUser"
+            parameterType="java.lang.Long"
+            resultMap="selectRoleByUserResultMap">
+        select role_id, user_id
+        from user_role
+        where user_id = #{userId}
+    </select>
+</mapper>
