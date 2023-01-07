@@ -120,9 +120,7 @@ public class PushServiceImpl extends ServiceImpl<PushMapper, Push>
         Page<PushVO> page = new Page<>(getPushByPageQuery.getPageNum(), getPushByPageQuery.getPageSize());
         IPage<PushVO> result = pushMapper.selectPushInfoByPageOrParam(page, getPushByPageQuery);
         List<PushVO> records = result.getRecords();
-        records.forEach(item -> {
-            item.setCreateTime(new Date(item.getCreateTime().getTime()));
-        });
+        records.forEach(item -> item.setCreateTime(new Date(item.getCreateTime().getTime())));
         if (StringUtils.isNotBlank(getPushByPageQuery.getCompanyName())) {
             records = records.stream().filter(item -> item.getCompanyName().contains(getPushByPageQuery.getCompanyName())).collect(Collectors.toList());
         }
