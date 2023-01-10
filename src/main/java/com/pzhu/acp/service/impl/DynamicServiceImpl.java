@@ -97,13 +97,13 @@ public class DynamicServiceImpl extends ServiceImpl<DynamicMapper, Dynamic>
     public Boolean updateByUp(Dynamic dynamic) {
         //查询该动态是否存在
         checkDynamicExisted(dynamic);
-        //获取数据库里面的点赞数
-        Dynamic oldDynamic = dynamicMapper.selectById(dynamic.getId());
-        Integer oldUpNum = oldDynamic.getUp();
         //获取redis中是否有该回复id对应的点赞数
         String discussKey = RedisConstant.DYNAMIC_BASE_UP_KEY;
         Set<Object> set = redisTemplate.opsForSet().members(discussKey);
         if (CollectionUtils.isEmpty(set)) {
+            //获取数据库里面的点赞数
+            Dynamic oldDynamic = dynamicMapper.selectById(dynamic.getId());
+            Integer oldUpNum = oldDynamic.getUp();
             log.info("当前不存在点赞数，直接加入Redis中，回复id为：{}", dynamic.getId());
             Integer up = oldUpNum + dynamic.getUp();
             redisTemplate.opsForSet().add(discussKey, dynamic.getId() + SPLIT_SYMBOL + up);
@@ -113,7 +113,7 @@ public class DynamicServiceImpl extends ServiceImpl<DynamicMapper, Dynamic>
             String[] split = item.toString().split(SPLIT_SYMBOL);
             if (Long.valueOf(split[0]).equals(dynamic.getId())) {
                 redisTemplate.opsForSet().remove(discussKey, item);
-                Integer newUpNum = oldUpNum + Integer.parseInt(split[1]) + dynamic.getUp();
+                Integer newUpNum = Integer.parseInt(split[1]) + dynamic.getUp();
                 item = dynamic.getId() + SPLIT_SYMBOL + newUpNum;
                 redisTemplate.opsForSet().add(discussKey, item);
             }

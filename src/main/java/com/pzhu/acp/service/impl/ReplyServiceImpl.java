@@ -90,14 +90,14 @@ public class ReplyServiceImpl extends ServiceImpl<ReplyMapper, Reply>
 
     @Override
     public boolean updateUpNum(Reply reply) {
-        //获取数据库里面的点赞数
-        Reply oldReply = replyMapper.selectById(reply.getId());
-        Integer oldUpNum = oldReply.getUp();
         //获取redis中是否有该回复id对应的点赞数
         String replyKey = RedisConstant.REPLY_BASE_UP_KEY;
         Set<Object> set = redisTemplate.opsForSet().members(replyKey);
         if (CollectionUtils.isEmpty(set)) {
             log.info("当前不存在点赞数，直接加入Redis中，回复id为：{}", reply.getId());
+            //获取数据库里面的点赞数
+            Reply oldReply = replyMapper.selectById(reply.getId());
+            Integer oldUpNum = oldReply.getUp();
             Integer up = oldUpNum + reply.getUp();
             redisTemplate.opsForSet().add(replyKey, reply.getId() + SPLIT_SYMBOL + up);
             return Boolean.TRUE;
@@ -106,7 +106,7 @@ public class ReplyServiceImpl extends ServiceImpl<ReplyMapper, Reply>
             String[] split = item.toString().split(SPLIT_SYMBOL);
             if (Long.valueOf(split[0]).equals(reply.getId())) {
                 redisTemplate.opsForSet().remove(replyKey, item);
-                Integer newUpNum = oldUpNum + Integer.parseInt(split[1]) + reply.getUp();
+                Integer newUpNum = Integer.parseInt(split[1]) + reply.getUp();
                 item = reply.getId() + SPLIT_SYMBOL + newUpNum;
                 redisTemplate.opsForSet().add(replyKey, item);
             }

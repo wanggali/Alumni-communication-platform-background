@@ -36,4 +36,9 @@ public interface RedisConstant {
      * 动态点赞 redis-key
      */
     String DYNAMIC_BASE_UP_KEY = "dynamic_up_key";
+
+    /**
+     * 帖子踩 redis-key
+     */
+    String DISCUSS_DOWN_UP_KEY = "discuss_DOWN_key";
 }

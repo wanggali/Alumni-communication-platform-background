@@ -27,6 +27,11 @@ public interface CommonConstant {
     int MIN_UP_NUM = 0;
 
     /**
+     * 最小踩数
+     */
+    int MIN_DOWN_NUM = 0;
+
+    /**
      * 点赞数
      */
     int UP_NUM = 1;

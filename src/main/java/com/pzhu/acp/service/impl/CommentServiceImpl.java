@@ -95,14 +95,14 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
     public boolean updateComment(Comment comment) {
         //查询该条评论是否存在
         checkComment(comment);
-        //获取数据库里面的点赞数
-        Comment oldComment = commentMapper.selectById(comment.getId());
-        Integer oldUpNum = oldComment.getUp();
         //获取redis中是否有该回复id对应的点赞数
         String commentKey = RedisConstant.COMMENT_BASE_UP_KEY;
         Set<Object> set = redisTemplate.opsForSet().members(commentKey);
-        if (org.springframework.util.CollectionUtils.isEmpty(set)) {
+        if (CollectionUtils.isEmpty(set)) {
             log.info("当前不存在点赞数，直接加入Redis中，回复id为：{}", comment.getId());
+            //获取数据库里面的点赞数
+            Comment oldComment = commentMapper.selectById(comment.getId());
+            Integer oldUpNum = oldComment.getUp();
             Integer up = oldUpNum + comment.getUp();
             redisTemplate.opsForSet().add(commentKey, comment.getId() + SPLIT_SYMBOL + up);
             return Boolean.TRUE;
@@ -111,7 +111,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
             String[] split = item.toString().split(SPLIT_SYMBOL);
             if (Long.valueOf(split[0]).equals(comment.getId())) {
                 redisTemplate.opsForSet().remove(commentKey, item);
-                Integer newUpNum = oldUpNum + Integer.parseInt(split[1]) + comment.getUp();
+                Integer newUpNum = Integer.parseInt(split[1]) + comment.getUp();
                 item = comment.getId() + SPLIT_SYMBOL + newUpNum;
                 redisTemplate.opsForSet().add(commentKey, item);
             }

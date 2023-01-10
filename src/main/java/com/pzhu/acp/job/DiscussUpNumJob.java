@@ -39,7 +39,7 @@ public class DiscussUpNumJob {
     @Scheduled(cron = "0 0/3 * * * ?")
     public void addDiscussUpNum() {
         log.info("帖子点赞定时任务开始工作");
-        //获取回复下的全部set集合
+        //获取帖子下的全部set集合
         Set<Object> members = redisTemplate.opsForSet().members(RedisConstant.DISCUSS_BASE_UP_KEY);
         if (members != null) {
             if (members.isEmpty()) {
