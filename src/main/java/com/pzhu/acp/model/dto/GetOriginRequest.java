@@ -14,7 +14,7 @@ public class GetOriginRequest extends WorkPageRequest implements Serializable {
     /**
      * 学院名
      */
-    private String collegeName;
+    private Long collegeId;
 
     /**
      * 用户

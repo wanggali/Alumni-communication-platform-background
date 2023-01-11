@@ -1,6 +1,7 @@
 package com.pzhu.acp.model.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 
@@ -9,6 +10,7 @@ import java.io.Serializable;
  * @Date: 2022-11-13 21:49
  * @Description:
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class GetOriginUserRequest extends WorkPageRequest implements Serializable {
     /**

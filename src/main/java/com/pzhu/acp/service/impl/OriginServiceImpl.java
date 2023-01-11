@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Maps;
 import com.pzhu.acp.assember.OriginAssembler;
 import com.pzhu.acp.common.ErrorCode;
+import com.pzhu.acp.constant.CommonConstant;
 import com.pzhu.acp.constant.OperationConstant;
 import com.pzhu.acp.exception.BusinessException;
 import com.pzhu.acp.mapper.*;
@@ -154,15 +155,8 @@ public class OriginServiceImpl extends ServiceImpl<OriginMapper, Origin>
         if (!StringUtils.isBlank(getOriginQuery.getOriginName())) {
             originQueryWrapper.like("name", getOriginQuery.getOriginName());
         }
-        if (!StringUtils.isBlank(getOriginQuery.getCollegeName())) {
-            QueryWrapper<College> collegeQueryWrapper = new QueryWrapper<>();
-            collegeQueryWrapper.like("name", getOriginQuery.getCollegeName());
-            College college = collegeMapper.selectOne(collegeQueryWrapper);
-            if (college == null) {
-                log.warn("没有该学院，该学院名为：{}", getOriginQuery.getCollegeName());
-                return Maps.newHashMap();
-            }
-            originQueryWrapper.eq("cid", college.getId());
+        if (getOriginQuery.getCollegeId() != null && getOriginQuery.getCollegeId() > CommonConstant.MIN_ID) {
+            originQueryWrapper.eq("cid", getOriginQuery.getCollegeId());
         }
         if (!StringUtils.isBlank(getOriginQuery.getUserName())) {
             QueryWrapper<User> userMapperQueryWrapper = new QueryWrapper<>();

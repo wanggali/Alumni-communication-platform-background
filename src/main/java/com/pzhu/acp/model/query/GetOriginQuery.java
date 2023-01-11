@@ -16,7 +16,7 @@ public class GetOriginQuery extends WorkPageQuery implements Serializable {
     /**
      * 学院
      */
-    private String collegeName;
+    private Long collegeId;
 
     /**
      * 用户
