@@ -42,27 +42,11 @@ public class DiscussUpNumJob {
         //获取帖子下的全部set集合
         Set<Object> members = redisTemplate.opsForSet().members(RedisConstant.DISCUSS_BASE_UP_KEY);
         Set<Object> downMembers = redisTemplate.opsForSet().members(RedisConstant.DISCUSS_DOWN_UP_KEY);
-        if (members != null) {
-            if (members.isEmpty()) {
-                log.info("该集合为空，redis的Key为：{}", RedisConstant.DISCUSS_BASE_UP_KEY);
-                return;
-            }
-            //不为空进行解析value并更新数据库
-            members.forEach(item -> {
-                String[] split = String.valueOf(item).split(SPLIT_SYMBOL);
-                Long id = Long.valueOf(split[0]);
-                Integer up = Integer.valueOf(split[1]);
-                Discuss discuss = new Discuss();
-                discuss.setId(id);
-                discuss.setUp(up);
-                int operationNum = discussMapper.updateById(discuss);
-                if (operationNum == OperationConstant.OPERATION_NUM) {
-                    log.warn("更新点赞数失败,该回复参数为:{}", GsonUtil.toJson(discuss));
-                    throw new BusinessException(ErrorCode.UPDATE_ERROR);
-                }
-            });
-            redisTemplate.delete(RedisConstant.DISCUSS_BASE_UP_KEY);
-        }
+        checkDiscussUp(members);
+        checkDiscussDown(downMembers);
+    }
+
+    private void checkDiscussDown(Set<Object> downMembers) {
         if (downMembers != null) {
             if (downMembers.isEmpty()) {
                 log.info("该集合为空，redis的Key为：{}", RedisConstant.DISCUSS_DOWN_UP_KEY);
@@ -83,6 +67,30 @@ public class DiscussUpNumJob {
                 }
             });
             redisTemplate.delete(RedisConstant.DISCUSS_DOWN_UP_KEY);
+        }
+    }
+
+    private void checkDiscussUp(Set<Object> members) {
+        if (members != null) {
+            if (members.isEmpty()) {
+                log.info("该集合为空，redis的Key为：{}", RedisConstant.DISCUSS_BASE_UP_KEY);
+                return;
+            }
+            //不为空进行解析value并更新数据库
+            members.forEach(item -> {
+                String[] split = String.valueOf(item).split(SPLIT_SYMBOL);
+                Long id = Long.valueOf(split[0]);
+                Integer up = Integer.valueOf(split[1]);
+                Discuss discuss = new Discuss();
+                discuss.setId(id);
+                discuss.setUp(up);
+                int operationNum = discussMapper.updateById(discuss);
+                if (operationNum == OperationConstant.OPERATION_NUM) {
+                    log.warn("更新点赞数失败,该回复参数为:{}", GsonUtil.toJson(discuss));
+                    throw new BusinessException(ErrorCode.UPDATE_ERROR);
+                }
+            });
+            redisTemplate.delete(RedisConstant.DISCUSS_BASE_UP_KEY);
         }
     }
 }
