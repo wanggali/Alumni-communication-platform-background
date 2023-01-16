@@ -50,6 +50,9 @@
             <if test="query.isAudit!=null">
                 and is_audit=#{query.isAudit}
             </if>
+            <if test="query.tid!=null">
+                and tid=#{query.tid}
+            </if>
         </where>
     </select>
 </mapper>

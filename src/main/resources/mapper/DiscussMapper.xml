@@ -60,6 +60,9 @@
             <if test="query.title != null">
                 and title like concat('%',#{query.title,jdbcType=VARCHAR},'%')
             </if>
+            <if test="query.tid != null">
+                and tid =#{query.tid}
+            </if>
             <if test="query.sortType == null">
                 order by create_time desc
             </if>

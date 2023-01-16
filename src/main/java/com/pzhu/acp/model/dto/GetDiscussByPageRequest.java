@@ -25,4 +25,10 @@ public class GetDiscussByPageRequest extends WorkPageRequest implements Serializ
      * 审核状态
      */
     private Integer isAuditType;
+
+    /**
+     * 标签id
+     */
+    private Long tid;
+
 }

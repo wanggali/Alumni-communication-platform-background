@@ -126,9 +126,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         if (StringUtils.isNotBlank(workPageQuery.getTitle())) {
             records = records.stream().filter(item -> item.getTitle().contains(workPageQuery.getTitle())).collect(Collectors.toList());
         }
-        if (workPageQuery.getIsAuditType() != null) {
-            records = records.stream().filter(item -> item.getIsAudit().equals(workPageQuery.getIsAuditType())).collect(Collectors.toList());
-        }
         Map<String, Object> map = Maps.newHashMap();
         map.put("items", records);
         map.put("current", result.getCurrent());

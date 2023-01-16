@@ -25,7 +25,8 @@ public class GetQuestionByPageRequest extends WorkPageRequest implements Seriali
     private String title;
 
     /**
-     * 审批状态
+     * 标签id
      */
-    private Integer isAuditType;
+    private Long tid;
+
 }

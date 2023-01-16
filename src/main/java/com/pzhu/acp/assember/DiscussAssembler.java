@@ -24,6 +24,9 @@ public class DiscussAssembler {
         if (getDiscussByPageRequest.getIsAuditType() != null) {
             getDiscussByPageQuery.setIsAuditType(getDiscussByPageRequest.getIsAuditType());
         }
+        if (getDiscussByPageRequest.getTid() != null) {
+            getDiscussByPageQuery.setTid(getDiscussByPageRequest.getTid());
+        }
         getDiscussByPageQuery.setPageNum(getDiscussByPageRequest.getPageNum());
         getDiscussByPageQuery.setPageSize(getDiscussByPageRequest.getPageSize());
         return getDiscussByPageQuery;

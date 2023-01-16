@@ -25,7 +25,8 @@ public class GetQuestionByPageQuery extends WorkPageRequest implements Serializa
     private String title;
 
     /**
-     * 审批状态
+     * 标签id
      */
-    private Integer isAuditType;
+    private Long tid;
+
 }
