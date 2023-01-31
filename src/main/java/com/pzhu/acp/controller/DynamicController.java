@@ -11,6 +11,8 @@ import com.pzhu.acp.model.dto.DynamicUpdateRequest;
 import com.pzhu.acp.model.dto.GetDynamicByPageRequest;
 import com.pzhu.acp.model.entity.Dynamic;
 import com.pzhu.acp.model.query.GetDynamicByPageQuery;
+import com.pzhu.acp.model.vo.DiscussVO;
+import com.pzhu.acp.model.vo.DynamicVO;
 import com.pzhu.acp.service.DynamicService;
 import com.pzhu.acp.utils.GsonUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -124,4 +126,18 @@ public class DynamicController {
         Map<String, Object> map = dynamicService.getDynamicByPageOrParam(getDynamicByPageQuery);
         return ResultUtils.success(map);
     }
+
+    /**
+     * 根据id获取讨论详情
+     */
+    @GetMapping("/getDynamicById/{id}")
+    public BaseResponse<DynamicVO> getDynamicById(@PathVariable Long id) {
+        if (id == null || id < CommonConstant.MIN_ID) {
+            log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(id));
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        DynamicVO discussInfoById = dynamicService.getDynamicById(id);
+        return ResultUtils.success(discussInfoById);
+    }
+
 }

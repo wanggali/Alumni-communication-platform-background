@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Maps;
+import com.pzhu.acp.common.BaseResponse;
 import com.pzhu.acp.common.ErrorCode;
 import com.pzhu.acp.constant.CommonConstant;
 import com.pzhu.acp.constant.OperationConstant;
@@ -231,6 +232,16 @@ public class DiscussServiceImpl extends ServiceImpl<DiscussMapper, Discuss>
         map.put("size", result.getSize());
         map.put("total", result.getTotal());
         return map;
+    }
+
+    @Override
+    public DiscussVO getDiscussInfoById(Long id) {
+        Discuss discuss = new Discuss();
+        discuss.setId(id);
+        checkDiscussExisted(discuss);
+        DiscussVO discussInfoById = discussMapper.getDiscussInfoById(id);
+        discussInfoById.setCreateTime(new Date(discussInfoById.getCreateTime().getTime()));
+        return discussInfoById;
     }
 }
 

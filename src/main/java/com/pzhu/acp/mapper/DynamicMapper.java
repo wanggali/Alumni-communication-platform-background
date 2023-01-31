@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.pzhu.acp.model.entity.Dynamic;
 import com.pzhu.acp.model.vo.DynamicVO;
+import org.apache.ibatis.annotations.Param;
 
 /**
 * @author Administrator
@@ -15,6 +16,8 @@ import com.pzhu.acp.model.vo.DynamicVO;
 public interface DynamicMapper extends BaseMapper<Dynamic> {
 
     IPage<DynamicVO> selectDynamicByPage(Page<DynamicVO> page);
+
+    DynamicVO selectDynamicById(@Param("id") Long id);
 }
 
 

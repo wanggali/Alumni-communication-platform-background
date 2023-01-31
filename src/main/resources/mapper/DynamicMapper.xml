@@ -43,4 +43,18 @@
         where is_delete = 0
         order by create_time desc
     </select>
+
+    <select id="selectDynamicById"
+            parameterType="java.lang.Long"
+            resultMap="SelectDynamicByPageMap">
+        select id,
+               uid,
+               tid,
+               content,
+               up,
+               create_time
+        from dynamic
+        where is_delete = 0
+          and id = #{id,jdbcType=BIGINT}
+    </select>
 </mapper>

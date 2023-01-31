@@ -75,4 +75,22 @@
         </where>
     </select>
 
+    <select id="getDiscussInfoById"
+            resultMap="GetDiscussVOMap"
+            parameterType="java.lang.Long">
+        select id,
+               uid,
+               tid,
+               title,
+               message,
+               cover,
+               up,
+               down,
+               is_audit,
+               create_time
+        from discuss
+        where id = #{id,jdbcType=BIGINT}
+          and is_audit = 1
+          and is_delete = 0
+    </select>
 </mapper>

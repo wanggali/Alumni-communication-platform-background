@@ -186,6 +186,13 @@ public class DynamicServiceImpl extends ServiceImpl<DynamicMapper, Dynamic>
         map.put("total", result.getTotal());
         return map;
     }
+
+    @Override
+    public DynamicVO getDynamicById(Long id) {
+        DynamicVO dynamicVO=dynamicMapper.selectDynamicById(id);
+        dynamicVO.setCreateTime(new Date(dynamicVO.getCreateTime().getTime()));
+        return dynamicVO;
+    }
 }
 
 

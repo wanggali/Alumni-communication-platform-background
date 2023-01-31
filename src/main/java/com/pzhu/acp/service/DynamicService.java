@@ -3,6 +3,7 @@ package com.pzhu.acp.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.pzhu.acp.model.entity.Dynamic;
 import com.pzhu.acp.model.query.GetDynamicByPageQuery;
+import com.pzhu.acp.model.vo.DynamicVO;
 
 import java.util.List;
 import java.util.Map;
@@ -23,4 +24,6 @@ public interface DynamicService extends IService<Dynamic> {
     Boolean deleteDynamic(List<Long> ids);
 
     Map<String, Object> getDynamicByPageOrParam(GetDynamicByPageQuery getDynamicByPageQuery);
+
+    DynamicVO getDynamicById(Long id);
 }

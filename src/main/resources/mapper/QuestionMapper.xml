@@ -55,4 +55,20 @@
             </if>
         </where>
     </select>
+
+    <select id="selectQuestionInfoById"
+            parameterType="java.lang.Long"
+            resultMap="selectQuestionByPageMap">
+        select id,
+               uid,
+               title,
+               content,
+               tid,
+               is_audit,
+               create_time
+        from question
+        where is_delete = 0
+          and id = #{id,jdbcType=BIGINT}
+          and is_audit = 1
+    </select>
 </mapper>

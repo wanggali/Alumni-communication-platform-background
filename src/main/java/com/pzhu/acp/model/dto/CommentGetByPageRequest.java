@@ -1,6 +1,7 @@
 package com.pzhu.acp.model.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 
@@ -9,6 +10,7 @@ import java.io.Serializable;
  * @Date: 2022-11-29 21:58
  * @Description:
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class CommentGetByPageRequest extends WorkPageRequest implements Serializable {
     /**

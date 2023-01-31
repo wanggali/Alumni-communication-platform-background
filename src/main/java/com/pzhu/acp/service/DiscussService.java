@@ -2,8 +2,10 @@ package com.pzhu.acp.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.pzhu.acp.common.BaseResponse;
 import com.pzhu.acp.model.entity.Discuss;
 import com.pzhu.acp.model.query.GetDiscussByPageQuery;
+import com.pzhu.acp.model.vo.DiscussVO;
 
 import java.util.List;
 import java.util.Map;
@@ -24,4 +26,6 @@ public interface DiscussService extends IService<Discuss> {
     boolean upOrDownAction(Discuss discuss);
 
     Map<String, Object> getDiscussByPageOrParam(GetDiscussByPageQuery getDiscussByPageQuery);
+
+    DiscussVO getDiscussInfoById(Long id);
 }

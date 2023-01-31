@@ -12,6 +12,8 @@ import com.pzhu.acp.model.dto.QuestionDeleteRequest;
 import com.pzhu.acp.model.dto.QuestionUpdateRequest;
 import com.pzhu.acp.model.entity.Question;
 import com.pzhu.acp.model.query.GetQuestionByPageQuery;
+import com.pzhu.acp.model.vo.DiscussVO;
+import com.pzhu.acp.model.vo.QuestionVO;
 import com.pzhu.acp.service.QuestionService;
 import com.pzhu.acp.utils.GsonUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -111,4 +113,18 @@ public class QuestionController {
         Map<String, Object> map = questionService.getQuestionByPage(workPageQuery);
         return ResultUtils.success(map);
     }
+
+    /**
+     * 根据id查询问题
+     */
+    @GetMapping("/getQuestionInfoById/{id}")
+    public BaseResponse<QuestionVO> getQuestionInfoById(@PathVariable Long id) {
+        if (id == null || id < CommonConstant.MIN_ID) {
+            log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(id));
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QuestionVO questionInfoById = questionService.getQuestionInfoById(id);
+        return ResultUtils.success(questionInfoById);
+    }
+
 }

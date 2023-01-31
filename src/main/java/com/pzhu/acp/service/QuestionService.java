@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.pzhu.acp.model.entity.Question;
 import com.pzhu.acp.model.query.GetQuestionByPageQuery;
 import com.pzhu.acp.model.query.WorkPageQuery;
+import com.pzhu.acp.model.vo.QuestionVO;
 
 import java.util.List;
 import java.util.Map;
@@ -22,4 +23,6 @@ public interface QuestionService extends IService<Question> {
     Boolean deleteQuestion(List<Long> ids);
 
     Map<String, Object> getQuestionByPage(GetQuestionByPageQuery workPageQuery);
+
+    QuestionVO getQuestionInfoById(Long id);
 }

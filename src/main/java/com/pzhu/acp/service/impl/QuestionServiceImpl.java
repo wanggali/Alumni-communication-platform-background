@@ -134,6 +134,13 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         map.put("total", result.getTotal());
         return map;
     }
+
+    @Override
+    public QuestionVO getQuestionInfoById(Long id) {
+        QuestionVO questionVO = questionMapper.selectQuestionInfoById(id);
+        questionVO.setCreateTime(new Date(questionVO.getCreateTime().getTime()));
+        return questionVO;
+    }
 }
 
 

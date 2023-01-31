@@ -18,6 +18,8 @@ import org.apache.ibatis.annotations.Param;
 public interface DiscussMapper extends BaseMapper<Discuss> {
 
     IPage<DiscussVO> selectDiscussByPageOrParam(Page<DiscussVO> discussPage,@Param("query") GetDiscussByPageQuery getDiscussByPageQuery);
+
+    DiscussVO getDiscussInfoById(@Param("id") Long id);
 }
 
 

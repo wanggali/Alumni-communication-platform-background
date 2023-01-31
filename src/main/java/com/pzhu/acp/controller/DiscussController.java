@@ -10,10 +10,12 @@ import com.pzhu.acp.exception.BusinessException;
 import com.pzhu.acp.model.dto.*;
 import com.pzhu.acp.model.entity.Discuss;
 import com.pzhu.acp.model.query.GetDiscussByPageQuery;
+import com.pzhu.acp.model.vo.DiscussVO;
 import com.pzhu.acp.service.DiscussService;
 import com.pzhu.acp.utils.GsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -143,4 +145,16 @@ public class DiscussController {
         return ResultUtils.success(map);
     }
 
+    /**
+     * 根据id获取讨论详情
+     */
+    @GetMapping("/getDiscussInfoById/{id}")
+    public BaseResponse<DiscussVO> getDiscussInfoById(@PathVariable Long id) {
+        if (id == null || id < CommonConstant.MIN_ID) {
+            log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(id));
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        DiscussVO discussInfoById = discussService.getDiscussInfoById(id);
+        return ResultUtils.success(discussInfoById);
+    }
 }

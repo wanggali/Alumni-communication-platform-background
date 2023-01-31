@@ -18,6 +18,8 @@ import org.apache.ibatis.annotations.Param;
 public interface QuestionMapper extends BaseMapper<Question> {
 
     IPage<QuestionVO> selectQuestionByPage(Page<QuestionVO> questionPage, @Param("query") GetQuestionByPageQuery getQuestionByPageQuery);
+
+    QuestionVO selectQuestionInfoById(@Param("id") Long id);
 }
 
 
