@@ -133,8 +133,8 @@ public class PushServiceImpl extends ServiceImpl<PushMapper, Push>
         if (StringUtils.isNotBlank(getPushByPageQuery.getCompanySalary())) {
             records = records.stream().filter(item -> {
                 BigDecimal income = new BigDecimal(item.getCompanySalary());
-                BigDecimal target = new BigDecimal(item.getCompanySalary());
-                return income.compareTo(target) > 0;
+                BigDecimal target = new BigDecimal(getPushByPageQuery.getCompanySalary());
+                return income.compareTo(target) >= 0;
             }).collect(Collectors.toList());
         }
         Map<String, Object> map = Maps.newHashMap();
