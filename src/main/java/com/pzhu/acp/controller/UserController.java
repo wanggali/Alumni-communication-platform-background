@@ -60,7 +60,7 @@ public class UserController {
         return ResultUtils.success(isSuccess);
     }
 
-    @GetMapping("/getEmailCode")
+    @GetMapping("/a'd'd")
     public BaseResponse<String> getEmailCode(@RequestParam String email) {
         userService.getEmailCode(email);
         return ResultUtils.success("success");
