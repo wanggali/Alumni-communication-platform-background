@@ -57,6 +57,7 @@
         from discuss
         <where>
             is_delete = 0
+            and is_audit = 1
             <if test="query.title != null">
                 and title like concat('%',#{query.title,jdbcType=VARCHAR},'%')
             </if>

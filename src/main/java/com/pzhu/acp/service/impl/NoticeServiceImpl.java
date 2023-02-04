@@ -83,11 +83,11 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice>
     @Override
     public Map<String, Object> getNoticeByPage(GetNoticeByPageQuery getNoticeByPageQuery) {
         Page<Notice> page = new Page<>(getNoticeByPageQuery.getPageNum(), getNoticeByPageQuery.getPageSize());
-        noticeMapper.selectPage(page, null);
+        QueryWrapper<Notice> noticeQueryWrapper = new QueryWrapper<>();
+        noticeQueryWrapper.orderByDesc("create_time");
+        noticeMapper.selectPage(page, noticeQueryWrapper);
         List<Notice> records = page.getRecords();
-        records.forEach(item -> {
-            item.setCreateTime(new Date(item.getCreateTime().getTime()));
-        });
+        records.forEach(item -> item.setCreateTime(new Date(item.getCreateTime().getTime())));
         Map<String, Object> map = Maps.newHashMap();
         map.put("items", records);
         map.put("current", page.getCurrent());

@@ -59,7 +59,7 @@ public interface CommonConstant {
     /**
      * 内容最小长度
      */
-    int CONTENT_MIN_LENGTH = 10;
+    int CONTENT_MIN_LENGTH = 5;
 
     /**
      * 最小职位数
