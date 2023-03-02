@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -217,7 +218,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         UserVO user = userMapper.selectUserById(id);
         user.setJoinTime(new Date(user.getJoinTime().getTime()));
         user.getUserInfo().setJoinTime(new Date(user.getUserInfo().getJoinTime().getTime()));
-        user.getUserInfo().setSexType(SexEnum.getOrderTypeEnum(user.getUserInfo().getSex()).getMsg());
+        user.getUserInfo().setSexType(Objects.nonNull(user.getUserInfo().getSex()) ?
+                SexEnum.getOrderTypeEnum(user.getUserInfo().getSex()).getMsg() : "未知");
         return user;
     }
 
