@@ -14,16 +14,11 @@ import com.pzhu.acp.constant.CommonConstant;
 import com.pzhu.acp.constant.OperationConstant;
 import com.pzhu.acp.constant.RedisConstant;
 import com.pzhu.acp.email.MailProducer;
+import com.pzhu.acp.enums.RoleEnum;
 import com.pzhu.acp.enums.SexEnum;
 import com.pzhu.acp.exception.BusinessException;
-import com.pzhu.acp.mapper.CollegeMapper;
-import com.pzhu.acp.mapper.RegionMapper;
-import com.pzhu.acp.mapper.UserInfoMapper;
-import com.pzhu.acp.mapper.UserMapper;
-import com.pzhu.acp.model.entity.College;
-import com.pzhu.acp.model.entity.Region;
-import com.pzhu.acp.model.entity.User;
-import com.pzhu.acp.model.entity.UserInfo;
+import com.pzhu.acp.mapper.*;
+import com.pzhu.acp.model.entity.*;
 import com.pzhu.acp.model.query.GetUserByPageQuery;
 import com.pzhu.acp.model.query.UserUpdatePasswordQuery;
 import com.pzhu.acp.model.vo.UserVO;
@@ -49,7 +44,7 @@ import java.util.stream.Collectors;
 /**
  * 用户服务实现类
  *
- * @author yupi
+ * @author gali
  */
 @Service
 @Slf4j
@@ -73,6 +68,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Resource
     private UserInfoMapper userInfoMapper;
+
+    @Resource
+    private UserRoleMapper userRoleMapper;
 
     /**
      * 盐值，混淆密码
@@ -127,11 +125,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         UserInfo userInfo = new UserInfo();
         userInfo.setId(user.getId());
+        userInfo.setEmail(user.getEmail());
         int userInfoOperationNum = userInfoMapper.insert(userInfo);
         if (userInfoOperationNum == OperationConstant.OPERATION_NUM) {
             log.warn("新增用户详细失败,该用户参数为:{}", GsonUtil.toJson(userInfo));
             throw new BusinessException(ErrorCode.SAVE_ERROR);
         }
+
+        //4.初始化用户角色 默认校友
+        UserRole userRole = new UserRole();
+        userRole.setRoleId(RoleEnum.STUDENT.getRoleId());
+        userRole.setUserId(user.getId());
+
+        int userRoleOperationNum = userRoleMapper.insert(userRole);
+        if (userRoleOperationNum == OperationConstant.OPERATION_NUM) {
+            log.warn("新增用户角色失败,该用户角色参数为:{}", GsonUtil.toJson(userRole));
+            throw new BusinessException(ErrorCode.SAVE_ERROR);
+        }
+
+        //5.删除redis验证码缓存
+        redisTemplate.delete(key);
+
         return Boolean.TRUE;
     }
 
@@ -270,7 +284,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         records.forEach(item -> {
             item.setJoinTime(new Date(item.getJoinTime().getTime()));
             item.getUserInfo().setJoinTime(new Date(item.getUserInfo().getJoinTime().getTime()));
-            item.getUserInfo().setBirthday(new Date(item.getUserInfo().getBirthday().getTime()));
+            item.getUserInfo().setBirthday(Objects.nonNull(item.getUserInfo().getBirthday())
+                    ? new Date(item.getUserInfo().getBirthday().getTime()) : null);
         });
         Map<String, Object> map = Maps.newHashMap();
         map.put("items", records);
@@ -335,12 +350,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusinessException(ErrorCode.NO_EXISTED_USER);
 
         }
+
         // 2. 用户脱敏
         User safetyUser = getSafetyUser(dataUser);
         if (dataUser.getAdminType() == 0) {
             log.warn("该用户不是管理员，用户信息为：{}", GsonUtil.toJson(safetyUser));
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
+
         // 3. 记录用户的登录态
         StpUtil.login(safetyUser.getId());
         return StpUtil.getTokenInfo().tokenValue;

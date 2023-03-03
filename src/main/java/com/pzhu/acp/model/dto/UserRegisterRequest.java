@@ -7,7 +7,7 @@ import lombok.Data;
 /**
  * 用户注册请求体
  *
- * @author yupi
+ * @author gali
  */
 @Data
 public class UserRegisterRequest implements Serializable {

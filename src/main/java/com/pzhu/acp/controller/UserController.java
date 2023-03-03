@@ -56,6 +56,7 @@ public class UserController {
         }
         User user = new User();
         BeanUtils.copyProperties(userRegisterRequest, user);
+        user.setPasssword(userRegisterRequest.getPassword());
         Boolean isSuccess = userService.userRegister(user, userRegisterRequest.getCode());
         return ResultUtils.success(isSuccess);
     }

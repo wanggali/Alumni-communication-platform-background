@@ -5,7 +5,7 @@ import com.pzhu.acp.common.ErrorCode;
 /**
  * 自定义异常类
  *
- * @author yupi
+ * @author gali
  */
 public class BusinessException extends RuntimeException {
 

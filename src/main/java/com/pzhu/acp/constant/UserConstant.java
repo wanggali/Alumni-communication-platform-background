@@ -3,7 +3,7 @@ package com.pzhu.acp.constant;
 /**
  * 用户常量
  *
- * @author yupi
+ * @author gali
  */
 public interface UserConstant {
 

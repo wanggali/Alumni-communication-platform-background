@@ -8,7 +8,7 @@ import java.io.Serializable;
 /**
  * 用户登录请求体
  *
- * @author yupi
+ * @author gali
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

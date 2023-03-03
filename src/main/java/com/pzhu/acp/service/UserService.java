@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * 用户服务
  *
- * @author yupi
+ * @author gali
  */
 public interface UserService extends IService<User> {
 
