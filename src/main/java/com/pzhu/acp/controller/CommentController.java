@@ -62,8 +62,7 @@ public class CommentController {
             log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(commentUpdateRequest));
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        if (commentUpdateRequest.getUp() > CommonConstant.UP_NUM ||
-                commentUpdateRequest.getUp() < CommonConstant.REDUCE_UP_NUM) {
+        if ((commentUpdateRequest.getUid() == null)) {
             log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(commentUpdateRequest));
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }

@@ -18,6 +18,7 @@ import com.pzhu.acp.service.IndexService;
 import com.pzhu.acp.utils.GsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -49,6 +50,14 @@ public class IndexServiceImpl implements IndexService {
 
     @Resource
     private TagMapper tagMapper;
+
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
+
+    /**
+     * 分隔符
+     */
+    private static final String SPLIT_SYMBOL = ":";
 
     @Override
     public Map<String, Object> getIndexInfo(IndexInfoQuery indexInfoQuery) {

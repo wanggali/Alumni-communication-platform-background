@@ -36,13 +36,14 @@ public class IndexController {
     @Resource
     private IndexService indexService;
 
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(10);
+
     /**
      * 分页获取首页 帖子、问题、动态信息
      * 默认三条
      */
     @PostMapping("/getIndexInfo")
     public BaseResponse<Map<String, Object>> getIndexInfo(@RequestBody IndexInfoRequest indexInfoRequest) throws ExecutionException, InterruptedException {
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
         IndexInfoQuery indexInfoQuery = new IndexInfoQuery();
         BeanUtils.copyProperties(indexInfoRequest, indexInfoQuery);
         CompletableFuture<Map<String, Object>> future = CompletableFuture.supplyAsync(()

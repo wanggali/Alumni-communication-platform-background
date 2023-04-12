@@ -40,5 +40,11 @@ public interface RedisConstant {
     /**
      * 帖子踩 redis-key
      */
-    String DISCUSS_DOWN_UP_KEY = "discuss_DOWN_key";
+    String DISCUSS_DOWN_KEY = "discuss_DOWN_key";
+
+    String DISCUSS_UP_USER_IDS = "discuss_up_user_ids";
+    String DYNAMIC_UP_USER_IDS = "dynamic_up_user_ids";
+    String COMMENT_UP_USER_IDS = "comment_up_user_ids";
+    String REPLY_UP_USER_IDS = "reply_up_user_ids";
+    String DISCUSS_DOWN_USER_IDS = "discuss_down_user_ids";
 }

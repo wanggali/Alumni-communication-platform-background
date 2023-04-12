@@ -18,8 +18,5 @@ public class CommentUpdateRequest implements Serializable {
      */
     private Long id;
 
-    /**
-     * 点赞数
-     */
-    private Integer up;
+    private Long uid;
 }

@@ -30,9 +30,4 @@ public class DynamicUpdateRequest implements Serializable {
      * 动态内容
      */
     private String content;
-
-    /**
-     * 点赞数
-     */
-    private Integer up;
 }

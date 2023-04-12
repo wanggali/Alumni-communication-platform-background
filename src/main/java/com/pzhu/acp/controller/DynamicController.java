@@ -64,8 +64,7 @@ public class DynamicController {
             log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(dynamicUpdateRequest));
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        if (dynamicUpdateRequest.getUp() > CommonConstant.UP_NUM ||
-                dynamicUpdateRequest.getUp() < CommonConstant.REDUCE_UP_NUM) {
+        if ((dynamicUpdateRequest.getUid() == null)) {
             log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(dynamicUpdateRequest));
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }

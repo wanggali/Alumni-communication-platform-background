@@ -20,7 +20,7 @@ public class ReplyUpdateNumRequest implements Serializable {
     private Long id;
 
     /**
-     * 点赞数
+     * uid
      */
-    private Integer up;
+    private Long uid;
 }

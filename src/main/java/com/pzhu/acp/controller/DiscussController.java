@@ -114,19 +114,17 @@ public class DiscussController {
             log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(discussUpOrDownRequest));
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        if (discussUpOrDownRequest.getUp() > CommonConstant.UP_NUM ||
-                discussUpOrDownRequest.getUp() < CommonConstant.REDUCE_UP_NUM) {
+        if (StringUtils.isBlank(discussUpOrDownRequest.getFlag())) {
             log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(discussUpOrDownRequest));
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        if (discussUpOrDownRequest.getDown() > CommonConstant.DOWN_NUM ||
-                discussUpOrDownRequest.getDown() < CommonConstant.REDUCE_DOWN_NUM) {
+        if ((discussUpOrDownRequest.getUid() == null)) {
             log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(discussUpOrDownRequest));
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Discuss discuss = new Discuss();
         BeanUtils.copyProperties(discussUpOrDownRequest, discuss);
-        boolean isSuccess = discussService.upOrDownAction(discuss);
+        boolean isSuccess = discussService.upOrDownAction(discuss, discussUpOrDownRequest.getFlag());
         return ResultUtils.success(isSuccess);
     }
 

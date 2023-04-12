@@ -56,8 +56,7 @@ public class ReplyController {
             log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(replyUpdateNumRequest));
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        if (replyUpdateNumRequest.getUp() > CommonConstant.UP_NUM ||
-                replyUpdateNumRequest.getUp() < CommonConstant.REDUCE_UP_NUM) {
+        if ((replyUpdateNumRequest.getUid() == null)) {
             log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(replyUpdateNumRequest));
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }

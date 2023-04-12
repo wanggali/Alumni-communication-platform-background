@@ -23,7 +23,7 @@ public interface DiscussService extends IService<Discuss> {
 
     boolean deleteDiscuss(List<Long> ids);
 
-    boolean upOrDownAction(Discuss discuss);
+    boolean upOrDownAction(Discuss discuss,String flag);
 
     Map<String, Object> getDiscussByPageOrParam(GetDiscussByPageQuery getDiscussByPageQuery);
 
