@@ -15,6 +15,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
+@RequestMapping("/captcha")
 public class CaptchaController {
 
     @Resource

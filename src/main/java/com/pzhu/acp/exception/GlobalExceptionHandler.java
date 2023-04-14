@@ -1,5 +1,6 @@
 package com.pzhu.acp.exception;
 
+import cn.dev33.satoken.exception.NotLoginException;
 import com.pzhu.acp.common.BaseResponse;
 import com.pzhu.acp.common.ErrorCode;
 import com.pzhu.acp.common.ResultUtils;
@@ -26,5 +27,11 @@ public class GlobalExceptionHandler {
     public BaseResponse runtimeExceptionHandler(RuntimeException e) {
         log.error("runtimeException", e);
         return ResultUtils.error(ErrorCode.SYSTEM_ERROR, e.getMessage(), "");
+    }
+
+    @ExceptionHandler(NotLoginException.class)
+    public BaseResponse saTokenExceptionHandler(RuntimeException e) {
+        log.error("notLoginException", e);
+        return ResultUtils.error(ErrorCode.NOT_LOGIN, e.getMessage(), "");
     }
 }

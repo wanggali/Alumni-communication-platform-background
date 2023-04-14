@@ -43,7 +43,7 @@ public class CommentUpNumJob {
      */
     @Scheduled(cron = "0 0/5 * * * ?")
     public void addDiscussUpNum() {
-        log.info("动态点赞定时任务开始工作");
+        log.info("评论点赞定时任务开始工作");
         doAddDiscussUp(RedisConstant.COMMENT_BASE_UP_KEY + SPLIT_SYMBOL + "*", TagsEnum.UP.getFlag());
     }
 

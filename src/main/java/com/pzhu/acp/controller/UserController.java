@@ -102,7 +102,6 @@ public class UserController {
     }
 
     @GetMapping("/current")
-    @SaCheckLogin
     public BaseResponse<UserVO> getCurrentUser(@RequestParam String token) {
         if (StringUtils.isBlank(token)) {
             log.error("参数校验失败,该参数为：{}", GsonUtil.toJson(token));

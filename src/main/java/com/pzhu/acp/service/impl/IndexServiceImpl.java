@@ -1,11 +1,10 @@
 package com.pzhu.acp.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.util.BooleanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Maps;
-import com.pzhu.acp.common.ErrorCode;
-import com.pzhu.acp.constant.CommonConstant;
-import com.pzhu.acp.exception.BusinessException;
+import com.pzhu.acp.constant.RedisConstant;
 import com.pzhu.acp.mapper.*;
 import com.pzhu.acp.model.entity.Discuss;
 import com.pzhu.acp.model.entity.Dynamic;
@@ -16,6 +15,7 @@ import com.pzhu.acp.model.vo.DynamicVO;
 import com.pzhu.acp.model.vo.QuestionVO;
 import com.pzhu.acp.service.IndexService;
 import com.pzhu.acp.utils.GsonUtil;
+import com.pzhu.acp.utils.UserInfoUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -75,34 +75,63 @@ public class IndexServiceImpl implements IndexService {
         List<Discuss> discusses = discussMapper.selectList(discussQueryWrapper);
         List<Question> questions = questionMapper.selectList(questionQueryWrapper);
         List<Dynamic> dynamics = dynamicMapper.selectList(dynamicQueryWrapper);
-        List<DiscussVO> discussVOS = discusses.stream().map(item -> {
-            DiscussVO discussVO = new DiscussVO();
-            discussVO.setUserInfo(userMapper.selectUserById(item.getUid()));
-            discussVO.setTagName(tagMapper.selectTagById(item.getTid()));
-            item.setCreateTime(new Date(item.getCreateTime().getTime()));
-            BeanUtils.copyProperties(item, discussVO);
-            return discussVO;
-        }).collect(Collectors.toList());
-        List<QuestionVO> questionVOS = questions.stream().map(item -> {
-            QuestionVO questionVO = new QuestionVO();
-            questionVO.setUserInfo(userMapper.selectUserById(item.getUid()));
-            questionVO.setTagName(tagMapper.selectTagById(item.getTid()));
-            item.setCreateTime(new Date(item.getCreateTime().getTime()));
-            BeanUtils.copyProperties(item, questionVO);
-            return questionVO;
-        }).collect(Collectors.toList());
-        List<DynamicVO> dynamicVOS = dynamics.stream().map(item -> {
-            DynamicVO dynamicVO = new DynamicVO();
-            dynamicVO.setUserInfo(userMapper.selectUserById(item.getUid()));
-            dynamicVO.setTagName(tagMapper.selectTagById(item.getTid()));
-            item.setCreateTime(new Date(item.getCreateTime().getTime()));
-            BeanUtils.copyProperties(item, dynamicVO);
-            return dynamicVO;
-        }).collect(Collectors.toList());
-        HashMap<String, Object> map = Maps.newHashMap();
+        List<DiscussVO> discussVOS = discusses.stream()
+                .map(this::buildDiscussInfo)
+                .collect(Collectors.toList());
+
+        List<QuestionVO> questionVOS = questions.stream()
+                .map(this::buildQuestionsInfo)
+                .collect(Collectors.toList());
+
+        List<DynamicVO> dynamicVOS = dynamics.stream()
+                .map(this::buildDynamicInfo)
+                .collect(Collectors.toList());
+
+        HashMap<String, Object> map = Maps.newLinkedHashMap();
         map.put("discuss", discussVOS);
         map.put("questions", questionVOS);
         map.put("dynamics", dynamicVOS);
         return map;
+    }
+
+    private DynamicVO buildDynamicInfo(Dynamic item) {
+        DynamicVO dynamicVO = new DynamicVO();
+        dynamicVO.setUserInfo(userMapper.selectUserById(item.getUid()));
+        dynamicVO.setTagName(tagMapper.selectTagById(item.getTid()));
+        item.setCreateTime(new Date(item.getCreateTime().getTime()));
+        BeanUtils.copyProperties(item, dynamicVO);
+        if (StpUtil.isLogin()) {
+            dynamicVO.setIsUp(checkUserIsUp(StpUtil.getLoginIdAsLong(), RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + item.getId()));
+        }
+        return dynamicVO;
+    }
+
+    private QuestionVO buildQuestionsInfo(Question item) {
+        QuestionVO questionVO = new QuestionVO();
+        questionVO.setUserInfo(userMapper.selectUserById(item.getUid()));
+        questionVO.setTagName(tagMapper.selectTagById(item.getTid()));
+        item.setCreateTime(new Date(item.getCreateTime().getTime()));
+        BeanUtils.copyProperties(item, questionVO);
+        return questionVO;
+    }
+
+    private DiscussVO buildDiscussInfo(Discuss item) {
+        DiscussVO discussVO = new DiscussVO();
+        discussVO.setUserInfo(userMapper.selectUserById(item.getUid()));
+        discussVO.setTagName(tagMapper.selectTagById(item.getTid()));
+        item.setCreateTime(new Date(item.getCreateTime().getTime()));
+        BeanUtils.copyProperties(item, discussVO);
+        if (StpUtil.isLogin()) {
+            discussVO.setIsUp(checkUserIsUp(StpUtil.getLoginIdAsLong(), RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + item.getId()));
+            discussVO.setIsDown(checkUserIsUp(StpUtil.getLoginIdAsLong(), RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + item.getId()));
+        }
+        return discussVO;
+    }
+
+    private Boolean checkUserIsUp(Long userId, String redisKey) {
+        if (userId != null && redisTemplate.keys(redisKey) != null) {
+            return redisTemplate.opsForSet().isMember(redisKey, GsonUtil.toJson(userId));
+        }
+        return Boolean.FALSE;
     }
 }

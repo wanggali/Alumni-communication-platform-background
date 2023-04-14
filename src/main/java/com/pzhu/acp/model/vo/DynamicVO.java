@@ -54,4 +54,7 @@ public class DynamicVO implements Serializable {
      * 创建时间
      */
     private Date createTime;
+
+    private Boolean isUp = Boolean.FALSE;
+
 }

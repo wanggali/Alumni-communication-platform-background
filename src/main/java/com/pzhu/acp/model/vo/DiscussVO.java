@@ -75,7 +75,7 @@ public class DiscussVO implements Serializable {
      */
     private Date createTime;
 
-    private Boolean isUp;
+    private Boolean isUp = Boolean.FALSE;
 
-    private Boolean isDown;
+    private Boolean isDown = Boolean.FALSE;
 }

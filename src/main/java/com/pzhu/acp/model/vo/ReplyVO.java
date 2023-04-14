@@ -43,4 +43,6 @@ public class ReplyVO implements Serializable {
      * 创建时间
      */
     private Date createTime;
+
+    private Boolean isUp = Boolean.FALSE;
 }

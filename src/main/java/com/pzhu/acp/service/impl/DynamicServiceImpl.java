@@ -1,5 +1,6 @@
 package com.pzhu.acp.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.BooleanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -181,7 +182,14 @@ public class DynamicServiceImpl extends ServiceImpl<DynamicMapper, Dynamic>
         Page<DynamicVO> page = new Page<>(getDynamicByPageQuery.getPageNum(), getDynamicByPageQuery.getPageSize());
         IPage<DynamicVO> result = dynamicMapper.selectDynamicByPage(page);
         List<DynamicVO> records = result.getRecords();
-        records.forEach(item -> item.setCreateTime(new Date(item.getCreateTime().getTime())));
+
+        records.forEach(item -> {
+            item.setCreateTime(new Date(item.getCreateTime().getTime()));
+            if (StpUtil.isLogin()) {
+                item.setIsUp(checkUserIsUp(StpUtil.getLoginIdAsLong(), RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + item.getId()));
+            }
+        });
+
         if (getDynamicByPageQuery.getSortType() != null) {
             records.sort(Comparator.comparing(DynamicVO::getUp).reversed());
         }
@@ -207,7 +215,17 @@ public class DynamicServiceImpl extends ServiceImpl<DynamicMapper, Dynamic>
     public DynamicVO getDynamicById(Long id) {
         DynamicVO dynamicVO = dynamicMapper.selectDynamicById(id);
         dynamicVO.setCreateTime(new Date(dynamicVO.getCreateTime().getTime()));
+        if (StpUtil.isLogin()) {
+            dynamicVO.setIsUp(checkUserIsUp(StpUtil.getLoginIdAsLong(), RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + id));
+        }
         return dynamicVO;
+    }
+
+    private Boolean checkUserIsUp(Long userId, String redisKey) {
+        if (userId != null && redisTemplate.keys(redisKey) != null) {
+            return redisTemplate.opsForSet().isMember(redisKey, GsonUtil.toJson(userId));
+        }
+        return Boolean.FALSE;
     }
 }
 

@@ -41,7 +41,7 @@ public class ReplyUpNumJob {
      */
     @Scheduled(cron = "0 0/5 * * * ?")
     public void addDiscussUpNum() {
-        log.info("动态点赞定时任务开始工作");
+        log.info("回复点赞定时任务开始工作");
         doAddDiscussUp(RedisConstant.REPLY_BASE_UP_KEY + SPLIT_SYMBOL + "*", TagsEnum.UP.getFlag());
     }
 

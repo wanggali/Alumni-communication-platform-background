@@ -1,5 +1,6 @@
 package com.pzhu.acp.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.BooleanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -180,6 +181,14 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
             item.getReplyInfo().forEach(param -> {
                 param.setCreateTime(new Date(param.getCreateTime().getTime()));
             });
+            if (StpUtil.isLogin()) {
+                item.setIsUp(checkUserIsUp(StpUtil.getLoginIdAsLong(), RedisConstant.COMMENT_UP_USER_IDS + SPLIT_SYMBOL + item.getId()));
+            }
+            item.getReplyInfo().forEach(reply -> {
+                if (StpUtil.isLogin()) {
+                    reply.setIsUp(checkUserIsUp(StpUtil.getLoginIdAsLong(), RedisConstant.REPLY_UP_USER_IDS + SPLIT_SYMBOL + reply.getId()));
+                }
+            });
         });
         //增加用户名字模糊匹配，学院，地区精准查询
         if (StringUtils.isNotBlank(getCommentQuery.getUserName())) {
@@ -198,6 +207,13 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
         map.put("size", result.getSize());
         map.put("total", result.getTotal());
         return map;
+    }
+
+    private Boolean checkUserIsUp(Long userId, String redisKey) {
+        if (userId != null && redisTemplate.keys(redisKey) != null) {
+            return redisTemplate.opsForSet().isMember(redisKey, GsonUtil.toJson(userId));
+        }
+        return Boolean.FALSE;
     }
 }
 

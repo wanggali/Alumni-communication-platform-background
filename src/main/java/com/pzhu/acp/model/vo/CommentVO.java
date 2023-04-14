@@ -52,4 +52,6 @@ public class CommentVO implements Serializable {
      * 回复信息
      */
     private List<ReplyVO> replyInfo;
+
+    private Boolean isUp = Boolean.FALSE;
 }

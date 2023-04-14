@@ -1,5 +1,6 @@
 package com.pzhu.acp.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.BooleanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -212,7 +213,7 @@ public class DiscussServiceImpl extends ServiceImpl<DiscussMapper, Discuss>
                     GsonUtil.toJson(discuss.getUid()));
             if (BooleanUtil.isTrue(isMember)) {
                 int newDiscussUp = oldDownNum - 1;
-                redisTemplate.opsForValue().set(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
+                redisTemplate.opsForValue().set(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
                 redisTemplate.opsForSet().remove(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
             } else {
                 Integer up = oldDownNum + 1;
@@ -224,7 +225,7 @@ public class DiscussServiceImpl extends ServiceImpl<DiscussMapper, Discuss>
                     GsonUtil.toJson(discuss.getUid()));
             if (BooleanUtil.isTrue(isMember)) {
                 int newDiscussUp = Integer.parseInt(discussDown) - 1;
-                redisTemplate.opsForValue().set(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
+                redisTemplate.opsForValue().set(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
                 redisTemplate.opsForSet().remove(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
             } else {
                 int newDiscussUp = Integer.parseInt(discussDown) + 1;
@@ -241,7 +242,15 @@ public class DiscussServiceImpl extends ServiceImpl<DiscussMapper, Discuss>
         Page<DiscussVO> discussPage = new Page<>(getDiscussByPageQuery.getPageNum(), getDiscussByPageQuery.getPageSize());
         IPage<DiscussVO> result = discussMapper.selectDiscussByPageOrParam(discussPage, getDiscussByPageQuery);
         List<DiscussVO> records = result.getRecords();
-        records.forEach(item -> item.setCreateTime(new Date(item.getCreateTime().getTime())));
+
+        records.forEach(item -> {
+            item.setCreateTime(new Date(item.getCreateTime().getTime()));
+            if (StpUtil.isLogin()) {
+                item.setIsUp(checkUserIsUp(StpUtil.getLoginIdAsLong(), RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + item.getId()));
+                item.setIsDown(checkUserIsUp(StpUtil.getLoginIdAsLong(), RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + item.getId()));
+            }
+        });
+
         if (getDiscussByPageQuery.getIsAuditType() != null) {
             records = records.stream().filter(item -> item.getIsAudit().equals(getDiscussByPageQuery.getIsAuditType())).collect(Collectors.toList());
         }
@@ -261,7 +270,18 @@ public class DiscussServiceImpl extends ServiceImpl<DiscussMapper, Discuss>
         checkDiscussExisted(discuss);
         DiscussVO discussInfoById = discussMapper.getDiscussInfoById(id);
         discussInfoById.setCreateTime(new Date(discussInfoById.getCreateTime().getTime()));
+        if (StpUtil.isLogin()) {
+            discussInfoById.setIsUp(checkUserIsUp(StpUtil.getLoginIdAsLong(), RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discussInfoById.getId()));
+            discussInfoById.setIsDown(checkUserIsUp(StpUtil.getLoginIdAsLong(), RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discussInfoById.getId()));
+        }
         return discussInfoById;
+    }
+
+    private Boolean checkUserIsUp(Long userId, String redisKey) {
+        if (userId != null && redisTemplate.keys(redisKey) != null) {
+            return redisTemplate.opsForSet().isMember(redisKey, GsonUtil.toJson(userId));
+        }
+        return Boolean.FALSE;
     }
 }
 
