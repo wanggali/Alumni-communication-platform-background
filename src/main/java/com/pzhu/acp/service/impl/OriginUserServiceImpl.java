@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Maps;
 import com.pzhu.acp.common.ErrorCode;
 import com.pzhu.acp.constant.CommonConstant;
+import com.pzhu.acp.constant.LockConstant;
 import com.pzhu.acp.constant.OperationConstant;
 import com.pzhu.acp.constant.OriginConstant;
 import com.pzhu.acp.exception.BusinessException;
@@ -20,12 +21,10 @@ import com.pzhu.acp.model.query.GetOriginUserQuery;
 import com.pzhu.acp.model.vo.OriginUserVO;
 import com.pzhu.acp.service.OriginUserService;
 import com.pzhu.acp.utils.GsonUtil;
+import com.pzhu.acp.utils.LockHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -52,21 +51,15 @@ public class OriginUserServiceImpl extends ServiceImpl<OriginUserMapper, OriginU
     private OriginMapper originMapper;
 
     @Resource
-    private RedissonClient redissonClient;
-
-    /**
-     * 加入组织通用锁字段
-     */
-    private final static String BASE_ADD_LOCK = "acp:add_origin";
+    private LockHelper lockHelper;
 
     @Override
     public Boolean addOriginUser(OriginUser originUser) {
         //只有一个线程能获取到锁
-        RLock lock = redissonClient.getLock(BASE_ADD_LOCK + ":" + originUser.getUid() + ":" + Thread.currentThread());
-        try {
-            while (true) {
-                //尝试获取锁
-                if (lock.tryLock(0, -1, TimeUnit.MILLISECONDS)) {
+        lockHelper.tryLock(LockConstant.ORIGIN_BASE_ADD_LOCK + originUser.getId(),
+                3000,
+                1000,
+                TimeUnit.MILLISECONDS, () -> {
                     //判断当前组织人数
                     QueryWrapper<Origin> originQueryWrapper = new QueryWrapper<>();
                     originQueryWrapper.eq("id", originUser.getOid());
@@ -89,19 +82,7 @@ public class OriginUserServiceImpl extends ServiceImpl<OriginUserMapper, OriginU
                         log.warn("添加组织用户失败");
                         throw new BusinessException(ErrorCode.SAVE_ERROR);
                     }
-                    break;
-                }
-            }
-        } catch (InterruptedException e) {
-            log.error("尝试加锁出现异常", e);
-            e.printStackTrace();
-        } finally {
-            //每个线程只能释放自己的锁
-            if (lock.isHeldByCurrentThread()) {
-                log.info("unLock: " + Thread.currentThread().getId());
-                lock.unlock();
-            }
-        }
+                });
         return Boolean.TRUE;
     }
 

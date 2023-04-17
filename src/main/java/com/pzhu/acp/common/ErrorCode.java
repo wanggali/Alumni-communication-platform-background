@@ -8,6 +8,7 @@ package com.pzhu.acp.common;
 public enum ErrorCode {
 
     SUCCESS(0, "ok", ""),
+    TRY_REDISSON_LOCK_ERROR(30000, "redisson尝试加锁失败", ""),
     PARAMS_ERROR(40000, "请求参数错误", ""),
     NULL_ERROR(40001, "请求数据为空", ""),
     NOT_LOGIN(40100, "未登录", ""),

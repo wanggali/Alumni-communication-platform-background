@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Maps;
 import com.pzhu.acp.common.ErrorCode;
+import com.pzhu.acp.constant.LockConstant;
 import com.pzhu.acp.constant.OperationConstant;
 import com.pzhu.acp.constant.RedisConstant;
 import com.pzhu.acp.enums.TagsEnum;
@@ -24,6 +25,7 @@ import com.pzhu.acp.model.query.GetDiscussByPageQuery;
 import com.pzhu.acp.model.vo.DiscussVO;
 import com.pzhu.acp.service.DiscussService;
 import com.pzhu.acp.utils.GsonUtil;
+import com.pzhu.acp.utils.LockHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -34,6 +36,7 @@ import javax.annotation.Resource;
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +63,9 @@ public class DiscussServiceImpl extends ServiceImpl<DiscussMapper, Discuss>
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Resource
+    private LockHelper lockHelper;
 
     /**
      * 分隔符
@@ -163,76 +169,82 @@ public class DiscussServiceImpl extends ServiceImpl<DiscussMapper, Discuss>
 
     @Override
     public boolean upOrDownAction(Discuss discuss, String flag) {
-        //查询该讨论是否存在
-        checkDiscussExisted(discuss);
-        //获取redis中是否有该回复id对应的点赞数
-        String discussUp = (String) redisTemplate.opsForValue().get(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + discuss.getId());
-        String discussDown = (String) redisTemplate.opsForValue().get(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + discuss.getId());
+        lockHelper.tryLock(LockConstant.DISCUSS_BASE_ADD_LOCK + discuss.getId() + flag,
+                1000,
+                1000,
+                TimeUnit.MILLISECONDS, () -> {
+                    //查询该讨论是否存在
+                    checkDiscussExisted(discuss);
+                    //获取redis中是否有该回复id对应的点赞数
+                    String discussUp = (String) redisTemplate.opsForValue().get(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + discuss.getId());
+                    String discussDown = (String) redisTemplate.opsForValue().get(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + discuss.getId());
 
-        if (TagsEnum.getOrderTypeEnum(flag).equals(TagsEnum.UP)) {
-            if (StringUtils.isBlank(discussUp)) {
-                log.info("当前不存在点赞数，直接加入Redis中，回复id为：{}", discuss.getId());
-                //获取数据库里面的点赞数
-                Discuss oldDiscuss = discussMapper.selectById(discuss.getId());
-                Integer oldUpNum = oldDiscuss.getUp();
-                Boolean isMember = redisTemplate.opsForSet().isMember(RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discuss.getId(),
-                        GsonUtil.toJson(discuss.getUid()));
-                if (BooleanUtil.isTrue(isMember)) {
-                    int newDiscussUp = oldUpNum - 1;
-                    redisTemplate.opsForValue().set(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
-                    redisTemplate.opsForSet().remove(RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
-                } else {
-                    Integer up = oldUpNum + 1;
-                    redisTemplate.opsForValue().set(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + discuss.getId(),
-                            GsonUtil.toJson(up));
-                    redisTemplate.opsForSet().add(RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discuss.getId(),
-                            GsonUtil.toJson(discuss.getUid()));
-                }
-            } else {
-                Boolean isMember = redisTemplate.opsForSet().isMember(RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discuss.getId(),
-                        GsonUtil.toJson(discuss.getUid()));
-                if (BooleanUtil.isTrue(isMember)) {
-                    int newDiscussUp = Integer.parseInt(discussUp) - 1;
-                    redisTemplate.opsForValue().set(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
-                    redisTemplate.opsForSet().remove(RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
-                } else {
-                    int newDiscussUp = Integer.parseInt(discussUp) + 1;
-                    redisTemplate.opsForValue().set(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
-                    redisTemplate.opsForSet().add(RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
-                }
-            }
-            return Boolean.TRUE;
-        }
+                    if (TagsEnum.getOrderTypeEnum(flag).equals(TagsEnum.UP)) {
+                        if (StringUtils.isBlank(discussUp)) {
+                            log.info("当前不存在点赞数，直接加入Redis中，回复id为：{}", discuss.getId());
+                            //获取数据库里面的点赞数
+                            Discuss oldDiscuss = discussMapper.selectById(discuss.getId());
+                            Integer oldUpNum = oldDiscuss.getUp();
+                            Boolean isMember = redisTemplate.opsForSet().isMember(RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discuss.getId(),
+                                    GsonUtil.toJson(discuss.getUid()));
+                            if (BooleanUtil.isTrue(isMember)) {
+                                int newDiscussUp = oldUpNum - 1;
+                                redisTemplate.opsForValue().set(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
+                                redisTemplate.opsForSet().remove(RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
+                            } else {
+                                Integer up = oldUpNum + 1;
+                                redisTemplate.opsForValue().set(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + discuss.getId(),
+                                        GsonUtil.toJson(up));
+                                redisTemplate.opsForSet().add(RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discuss.getId(),
+                                        GsonUtil.toJson(discuss.getUid()));
+                            }
+                        } else {
+                            Boolean isMember = redisTemplate.opsForSet().isMember(RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discuss.getId(),
+                                    GsonUtil.toJson(discuss.getUid()));
+                            if (BooleanUtil.isTrue(isMember)) {
+                                int newDiscussUp = Integer.parseInt(discussUp) - 1;
+                                redisTemplate.opsForValue().set(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
+                                redisTemplate.opsForSet().remove(RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
+                            } else {
+                                int newDiscussUp = Integer.parseInt(discussUp) + 1;
+                                redisTemplate.opsForValue().set(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
+                                redisTemplate.opsForSet().add(RedisConstant.DISCUSS_UP_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
+                            }
+                        }
+                        return;
+                    }
 
-        if (StringUtils.isBlank(discussDown)) {
-            log.info("当前不存在点赞数，直接加入Redis中，回复id为：{}", discuss.getId());
-            //获取数据库里面的点赞数
-            Discuss oldDiscuss = discussMapper.selectById(discuss.getId());
-            Integer oldDownNum = oldDiscuss.getDown();
-            Boolean isMember = redisTemplate.opsForSet().isMember(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(),
-                    GsonUtil.toJson(discuss.getUid()));
-            if (BooleanUtil.isTrue(isMember)) {
-                int newDiscussUp = oldDownNum - 1;
-                redisTemplate.opsForValue().set(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
-                redisTemplate.opsForSet().remove(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
-            } else {
-                Integer up = oldDownNum + 1;
-                redisTemplate.opsForValue().set(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(up));
-                redisTemplate.opsForSet().add(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
-            }
-        } else {
-            Boolean isMember = redisTemplate.opsForSet().isMember(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(),
-                    GsonUtil.toJson(discuss.getUid()));
-            if (BooleanUtil.isTrue(isMember)) {
-                int newDiscussUp = Integer.parseInt(discussDown) - 1;
-                redisTemplate.opsForValue().set(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
-                redisTemplate.opsForSet().remove(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
-            } else {
-                int newDiscussUp = Integer.parseInt(discussDown) + 1;
-                redisTemplate.opsForValue().set(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
-                redisTemplate.opsForSet().add(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
-            }
-        }
+                    if (StringUtils.isBlank(discussDown)) {
+                        log.info("当前不存在点赞数，直接加入Redis中，回复id为：{}", discuss.getId());
+                        //获取数据库里面的点赞数
+                        Discuss oldDiscuss = discussMapper.selectById(discuss.getId());
+                        Integer oldDownNum = oldDiscuss.getDown();
+                        Boolean isMember = redisTemplate.opsForSet().isMember(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(),
+                                GsonUtil.toJson(discuss.getUid()));
+                        if (BooleanUtil.isTrue(isMember)) {
+                            int newDiscussUp = oldDownNum - 1;
+                            redisTemplate.opsForValue().set(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
+                            redisTemplate.opsForSet().remove(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
+                        } else {
+                            Integer up = oldDownNum + 1;
+                            redisTemplate.opsForValue().set(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(up));
+                            redisTemplate.opsForSet().add(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
+                        }
+                    } else {
+                        Boolean isMember = redisTemplate.opsForSet().isMember(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(),
+                                GsonUtil.toJson(discuss.getUid()));
+                        if (BooleanUtil.isTrue(isMember)) {
+                            int newDiscussUp = Integer.parseInt(discussDown) - 1;
+                            redisTemplate.opsForValue().set(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
+                            redisTemplate.opsForSet().remove(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
+                        } else {
+                            int newDiscussUp = Integer.parseInt(discussDown) + 1;
+                            redisTemplate.opsForValue().set(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(newDiscussUp));
+                            redisTemplate.opsForSet().add(RedisConstant.DISCUSS_DOWN_USER_IDS + SPLIT_SYMBOL + discuss.getId(), GsonUtil.toJson(discuss.getUid()));
+                        }
+                    }
+                }
+        );
         //定时任务每3分钟统计并写入数据库中
         return Boolean.TRUE;
     }

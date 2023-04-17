@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Maps;
 import com.pzhu.acp.common.ErrorCode;
+import com.pzhu.acp.constant.LockConstant;
 import com.pzhu.acp.constant.OperationConstant;
 import com.pzhu.acp.constant.RedisConstant;
 import com.pzhu.acp.enums.TagsEnum;
@@ -24,6 +25,7 @@ import com.pzhu.acp.model.vo.DiscussVO;
 import com.pzhu.acp.model.vo.DynamicVO;
 import com.pzhu.acp.service.DynamicService;
 import com.pzhu.acp.utils.GsonUtil;
+import com.pzhu.acp.utils.LockHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,6 +38,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +63,8 @@ public class DynamicServiceImpl extends ServiceImpl<DynamicMapper, Dynamic>
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Resource
+    private LockHelper lockHelper;
     /**
      * 分隔符
      */
@@ -99,42 +104,47 @@ public class DynamicServiceImpl extends ServiceImpl<DynamicMapper, Dynamic>
 
     @Override
     public Boolean updateByUp(Dynamic dynamic) {
-        //查询该动态是否存在
-        checkDynamicExisted(dynamic);
-        //获取redis中是否有该回复id对应的点赞数
-        String dynamicUp = (String) redisTemplate.opsForValue().get(RedisConstant.DYNAMIC_BASE_UP_KEY + SPLIT_SYMBOL + dynamic.getId());
+        lockHelper.tryLock(LockConstant.DYNAMIC_BASE_ADD_LOCK + dynamic.getId(),
+                1000,
+                1000,
+                TimeUnit.MILLISECONDS, () -> {
+                    //查询该动态是否存在
+                    checkDynamicExisted(dynamic);
+                    //获取redis中是否有该回复id对应的点赞数
+                    String dynamicUp = (String) redisTemplate.opsForValue().get(RedisConstant.DYNAMIC_BASE_UP_KEY + SPLIT_SYMBOL + dynamic.getId());
 
-        if (StringUtils.isBlank(dynamicUp)) {
-            log.info("当前不存在点赞数，直接加入Redis中，回复id为：{}", dynamic.getId());
-            //获取数据库里面的点赞数
-            Dynamic oldDiscuss = dynamicMapper.selectById(dynamic.getId());
-            Integer oldUpNum = oldDiscuss.getUp();
-            Boolean isMember = redisTemplate.opsForSet().isMember(RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + dynamic.getId(),
-                    GsonUtil.toJson(dynamic.getUid()));
-            if (BooleanUtil.isTrue(isMember)) {
-                int newDiscussUp = oldUpNum - 1;
-                redisTemplate.opsForValue().set(RedisConstant.DYNAMIC_BASE_UP_KEY + SPLIT_SYMBOL + dynamic.getId(), GsonUtil.toJson(newDiscussUp));
-                redisTemplate.opsForSet().remove(RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + dynamic.getId(), GsonUtil.toJson(dynamic.getUid()));
-            } else {
-                Integer up = oldUpNum + 1;
-                redisTemplate.opsForValue().set(RedisConstant.DYNAMIC_BASE_UP_KEY + SPLIT_SYMBOL + dynamic.getId(),
-                        GsonUtil.toJson(up));
-                redisTemplate.opsForSet().add(RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + dynamic.getId(),
-                        GsonUtil.toJson(dynamic.getUid()));
-            }
-        } else {
-            Boolean isMember = redisTemplate.opsForSet().isMember(RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + dynamic.getId(),
-                    GsonUtil.toJson(dynamic.getUid()));
-            if (BooleanUtil.isTrue(isMember)) {
-                int newDiscussUp = Integer.parseInt(dynamicUp) - 1;
-                redisTemplate.opsForValue().set(RedisConstant.DYNAMIC_BASE_UP_KEY + SPLIT_SYMBOL + dynamic.getId(), GsonUtil.toJson(newDiscussUp));
-                redisTemplate.opsForSet().remove(RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + dynamic.getId(), GsonUtil.toJson(dynamic.getUid()));
-            } else {
-                int newDiscussUp = Integer.parseInt(dynamicUp) + 1;
-                redisTemplate.opsForValue().set(RedisConstant.DYNAMIC_BASE_UP_KEY + SPLIT_SYMBOL + dynamic.getId(), GsonUtil.toJson(newDiscussUp));
-                redisTemplate.opsForSet().add(RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + dynamic.getId(), GsonUtil.toJson(dynamic.getUid()));
-            }
-        }
+                    if (StringUtils.isBlank(dynamicUp)) {
+                        log.info("当前不存在点赞数，直接加入Redis中，回复id为：{}", dynamic.getId());
+                        //获取数据库里面的点赞数
+                        Dynamic oldDiscuss = dynamicMapper.selectById(dynamic.getId());
+                        Integer oldUpNum = oldDiscuss.getUp();
+                        Boolean isMember = redisTemplate.opsForSet().isMember(RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + dynamic.getId(),
+                                GsonUtil.toJson(dynamic.getUid()));
+                        if (BooleanUtil.isTrue(isMember)) {
+                            int newDiscussUp = oldUpNum - 1;
+                            redisTemplate.opsForValue().set(RedisConstant.DYNAMIC_BASE_UP_KEY + SPLIT_SYMBOL + dynamic.getId(), GsonUtil.toJson(newDiscussUp));
+                            redisTemplate.opsForSet().remove(RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + dynamic.getId(), GsonUtil.toJson(dynamic.getUid()));
+                        } else {
+                            Integer up = oldUpNum + 1;
+                            redisTemplate.opsForValue().set(RedisConstant.DYNAMIC_BASE_UP_KEY + SPLIT_SYMBOL + dynamic.getId(),
+                                    GsonUtil.toJson(up));
+                            redisTemplate.opsForSet().add(RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + dynamic.getId(),
+                                    GsonUtil.toJson(dynamic.getUid()));
+                        }
+                    } else {
+                        Boolean isMember = redisTemplate.opsForSet().isMember(RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + dynamic.getId(),
+                                GsonUtil.toJson(dynamic.getUid()));
+                        if (BooleanUtil.isTrue(isMember)) {
+                            int newDiscussUp = Integer.parseInt(dynamicUp) - 1;
+                            redisTemplate.opsForValue().set(RedisConstant.DYNAMIC_BASE_UP_KEY + SPLIT_SYMBOL + dynamic.getId(), GsonUtil.toJson(newDiscussUp));
+                            redisTemplate.opsForSet().remove(RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + dynamic.getId(), GsonUtil.toJson(dynamic.getUid()));
+                        } else {
+                            int newDiscussUp = Integer.parseInt(dynamicUp) + 1;
+                            redisTemplate.opsForValue().set(RedisConstant.DYNAMIC_BASE_UP_KEY + SPLIT_SYMBOL + dynamic.getId(), GsonUtil.toJson(newDiscussUp));
+                            redisTemplate.opsForSet().add(RedisConstant.DYNAMIC_UP_USER_IDS + SPLIT_SYMBOL + dynamic.getId(), GsonUtil.toJson(dynamic.getUid()));
+                        }
+                    }
+                });
         //定时任务每三分钟统计并写入数据库中
         return Boolean.TRUE;
     }
