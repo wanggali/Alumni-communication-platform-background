@@ -15,11 +15,10 @@ import java.util.concurrent.TimeUnit;
  * @Date: 2023-04-17 22:04
  * @Description:
  */
-@Component
 @Slf4j
 public class LockHelper {
-    @Resource
-    private RedissonClient redissonClient;
+
+    private static final RedissonClient REDISSON_CLIENT = SpringContextUtil.getBean(RedissonClient.class);
 
     /**
      * 尝试加分布式锁
@@ -30,8 +29,8 @@ public class LockHelper {
      * @param unit
      * @param runnable
      */
-    public void tryLock(String lockKey, long waitTime, long leaseTime, TimeUnit unit, Runnable runnable) {
-        RLock lock = redissonClient.getLock(lockKey);
+    public static void tryLock(String lockKey, long waitTime, long leaseTime, TimeUnit unit, Runnable runnable) {
+        RLock lock = REDISSON_CLIENT.getLock(lockKey);
         try {
             while (true) {
                 if (lock.tryLock(waitTime, leaseTime, unit)) {

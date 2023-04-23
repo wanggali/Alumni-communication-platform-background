@@ -64,9 +64,6 @@ public class DiscussServiceImpl extends ServiceImpl<DiscussMapper, Discuss>
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
-    @Resource
-    private LockHelper lockHelper;
-
     /**
      * 分隔符
      */
@@ -169,7 +166,7 @@ public class DiscussServiceImpl extends ServiceImpl<DiscussMapper, Discuss>
 
     @Override
     public boolean upOrDownAction(Discuss discuss, String flag) {
-        lockHelper.tryLock(LockConstant.DISCUSS_BASE_ADD_LOCK + discuss.getId() + flag,
+        LockHelper.tryLock(LockConstant.DISCUSS_BASE_ADD_LOCK + discuss.getId() + flag,
                 1000,
                 1000,
                 TimeUnit.MILLISECONDS, () -> {

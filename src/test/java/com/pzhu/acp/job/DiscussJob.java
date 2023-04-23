@@ -16,6 +16,6 @@ public class DiscussJob {
     private DiscussUpNumJob job;
     @Test
     public void test(){
-        job.addDiscussUpNum();
+        job.addThumbUpJob();
     }
 }

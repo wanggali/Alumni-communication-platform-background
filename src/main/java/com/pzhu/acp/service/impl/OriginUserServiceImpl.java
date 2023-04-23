@@ -50,13 +50,10 @@ public class OriginUserServiceImpl extends ServiceImpl<OriginUserMapper, OriginU
     @Resource
     private OriginMapper originMapper;
 
-    @Resource
-    private LockHelper lockHelper;
-
     @Override
     public Boolean addOriginUser(OriginUser originUser) {
         //只有一个线程能获取到锁
-        lockHelper.tryLock(LockConstant.ORIGIN_BASE_ADD_LOCK + originUser.getId(),
+        LockHelper.tryLock(LockConstant.ORIGIN_BASE_ADD_LOCK + originUser.getId(),
                 3000,
                 1000,
                 TimeUnit.MILLISECONDS, () -> {

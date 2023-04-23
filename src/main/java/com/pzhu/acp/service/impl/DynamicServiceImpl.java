@@ -63,8 +63,6 @@ public class DynamicServiceImpl extends ServiceImpl<DynamicMapper, Dynamic>
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
-    @Resource
-    private LockHelper lockHelper;
     /**
      * 分隔符
      */
@@ -104,7 +102,7 @@ public class DynamicServiceImpl extends ServiceImpl<DynamicMapper, Dynamic>
 
     @Override
     public Boolean updateByUp(Dynamic dynamic) {
-        lockHelper.tryLock(LockConstant.DYNAMIC_BASE_ADD_LOCK + dynamic.getId(),
+        LockHelper.tryLock(LockConstant.DYNAMIC_BASE_ADD_LOCK + dynamic.getId(),
                 1000,
                 1000,
                 TimeUnit.MILLISECONDS, () -> {

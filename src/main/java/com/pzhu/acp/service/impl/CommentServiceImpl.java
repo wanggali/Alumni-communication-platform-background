@@ -57,9 +57,6 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
-    @Resource
-    private LockHelper lockHelper;
-
     /**
      * 分隔符
      */
@@ -98,7 +95,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
 
     @Override
     public boolean updateComment(Comment comment) {
-        lockHelper.tryLock(LockConstant.COMMENT_BASE_ADD_LOCK + comment.getId(),
+        LockHelper.tryLock(LockConstant.COMMENT_BASE_ADD_LOCK + comment.getId(),
                 1000,
                 1000,
                 TimeUnit.MILLISECONDS, () -> {

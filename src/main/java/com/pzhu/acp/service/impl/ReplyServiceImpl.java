@@ -53,9 +53,6 @@ public class ReplyServiceImpl extends ServiceImpl<ReplyMapper, Reply>
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
-    @Resource
-    private LockHelper lockHelper;
-
     /**
      * 分隔符
      */
@@ -94,7 +91,7 @@ public class ReplyServiceImpl extends ServiceImpl<ReplyMapper, Reply>
 
     @Override
     public boolean updateUpNum(Reply reply) {
-        lockHelper.tryLock(LockConstant.REPLY_BASE_ADD_LOCK + reply.getId(),
+        LockHelper.tryLock(LockConstant.REPLY_BASE_ADD_LOCK + reply.getId(),
                 1000,
                 1000,
                 TimeUnit.MILLISECONDS, () -> {

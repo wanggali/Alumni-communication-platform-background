@@ -39,7 +39,8 @@ public enum ErrorCode {
     EXISTED_ROLE_NAME(51400, "已存在该角色", ""),
     EXISTED_PERMISSION_PATH(51500, "菜单路径已重复", ""),
     EXISTED_PERMISSION_CHILDREN(51600, "菜单下有子菜单", ""),
-    USER_ROLE_IN_SAME(51700, "用户角色为当前设定值", "");
+    USER_ROLE_IN_SAME(51700, "用户角色为当前设定值", ""),
+    BIZ_SERVICE_ERROR(60000, "错误的业务服务类型", "");
 
     private final int code;
 

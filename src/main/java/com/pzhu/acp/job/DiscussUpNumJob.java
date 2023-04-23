@@ -5,6 +5,7 @@ import com.pzhu.acp.constant.OperationConstant;
 import com.pzhu.acp.constant.RedisConstant;
 import com.pzhu.acp.enums.TagsEnum;
 import com.pzhu.acp.exception.BusinessException;
+import com.pzhu.acp.factory.ThumbUpFactory;
 import com.pzhu.acp.mapper.DiscussMapper;
 import com.pzhu.acp.model.entity.Discuss;
 import com.pzhu.acp.utils.GsonUtil;
@@ -25,7 +26,7 @@ import java.util.Set;
  */
 @Slf4j
 @Component
-public class DiscussUpNumJob {
+public class DiscussUpNumJob extends ThumbUpFactory {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -37,8 +38,9 @@ public class DiscussUpNumJob {
     /**
      * 每一分钟，清理一下所有点赞数
      */
+    @Override
     @Scheduled(cron = "0 0/5 * * * ?")
-    public void addDiscussUpNum() {
+    protected void addThumbUpJob() {
         log.info("帖子点赞定时任务开始工作");
         doAddDiscussUp(RedisConstant.DISCUSS_BASE_UP_KEY + SPLIT_SYMBOL + "*", TagsEnum.UP.getFlag());
         doAddDiscussUp(RedisConstant.DISCUSS_DOWN_KEY + SPLIT_SYMBOL + "*", TagsEnum.DOWN.getFlag());
@@ -72,6 +74,4 @@ public class DiscussUpNumJob {
             }
         });
     }
-
-
 }

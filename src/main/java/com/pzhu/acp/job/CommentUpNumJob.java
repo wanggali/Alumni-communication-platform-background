@@ -5,6 +5,7 @@ import com.pzhu.acp.constant.OperationConstant;
 import com.pzhu.acp.constant.RedisConstant;
 import com.pzhu.acp.enums.TagsEnum;
 import com.pzhu.acp.exception.BusinessException;
+import com.pzhu.acp.factory.ThumbUpFactory;
 import com.pzhu.acp.mapper.CommentMapper;
 import com.pzhu.acp.mapper.DynamicMapper;
 import com.pzhu.acp.mapper.ReplyMapper;
@@ -29,7 +30,7 @@ import java.util.Set;
  */
 @Slf4j
 @Component
-public class CommentUpNumJob {
+public class CommentUpNumJob extends ThumbUpFactory {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -41,8 +42,9 @@ public class CommentUpNumJob {
     /**
      * 每一分钟，清理一下所有点赞数
      */
+    @Override
     @Scheduled(cron = "0 0/5 * * * ?")
-    public void addDiscussUpNum() {
+    protected void addThumbUpJob() {
         log.info("评论点赞定时任务开始工作");
         doAddDiscussUp(RedisConstant.COMMENT_BASE_UP_KEY + SPLIT_SYMBOL + "*", TagsEnum.UP.getFlag());
     }
