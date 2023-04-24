@@ -1,6 +1,20 @@
+server:
+  port: 7777
+
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/acp
     username: root
     password: 123456
+
+  redis:
+    port: 6379
+    host: localhost
+    database: 1
+    timeout: 5000
+
+mybatis-plus:
+  configuration:
+    # 生产环境关闭日志
+    log-impl: ''

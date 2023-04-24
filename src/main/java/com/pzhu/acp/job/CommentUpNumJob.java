@@ -31,13 +31,9 @@ import java.util.Set;
 @Slf4j
 @Component
 public class CommentUpNumJob extends ThumbUpFactory {
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
 
     @Resource
     private CommentMapper commentMapper;
-
-    private static final String SPLIT_SYMBOL = ":";
 
     /**
      * 每一分钟，清理一下所有点赞数

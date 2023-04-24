@@ -13,14 +13,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Date: 2023-04-23 23:25
  * @Description:
  */
-public abstract class BizHandlerRegister implements InitializingBean {
+public class BizHandlerRegister {
 
     private static final Map<String, BizHandler> handlerMap = new ConcurrentHashMap<>();
 
     /**
      * 服务注册
+     *
+     * @param bizType
+     * @param bizHandler
      */
-    public static void registerService(String bizType, BizHandler bizHandler) {
+    public static void register(String bizType, BizHandler bizHandler) {
         if (BizTypeEnum.checkBizType(bizType)) {
             handlerMap.put(bizType, bizHandler);
         }
@@ -29,11 +32,15 @@ public abstract class BizHandlerRegister implements InitializingBean {
 
     /**
      * 服务发现
+     *
+     * @param bizType
+     * @return
      */
     public static BizHandler getService(String bizType) {
-        if (BizTypeEnum.checkBizType(bizType)) {
-            return handlerMap.get(bizType);
+        BizHandler bizHandler = handlerMap.get(bizType);
+        if (bizHandler == null) {
+            throw new BusinessException(ErrorCode.BIZ_SERVICE_ERROR);
         }
-        throw new BusinessException(ErrorCode.BIZ_SERVICE_ERROR);
+        return bizHandler;
     }
 }

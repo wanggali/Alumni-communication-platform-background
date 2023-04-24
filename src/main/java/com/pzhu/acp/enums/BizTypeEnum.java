@@ -12,9 +12,9 @@ import java.util.Objects;
  * @Description:
  */
 public enum BizTypeEnum {
-    TOPIC_MESSAGE("discuss", "帖子"),
-    ANSWER_MESSAGE("question", "问答"),
-    NEWS_MESSAGE("dynamic", "动态");
+    DISCUSS("discuss", "帖子"),
+    QUESTION("question", "问答"),
+    DYNAMIC("dynamic", "动态");
     /**
      * 讨论类型
      */

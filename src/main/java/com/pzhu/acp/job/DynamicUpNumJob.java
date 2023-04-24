@@ -30,12 +30,8 @@ import java.util.Set;
 @Component
 public class DynamicUpNumJob extends ThumbUpFactory {
     @Resource
-    private RedisTemplate<String, Object> redisTemplate;
-
-    @Resource
     private DynamicMapper dynamicMapper;
 
-    private static final String SPLIT_SYMBOL = ":";
 
     /**
      * 每一分钟，清理一下所有点赞数
